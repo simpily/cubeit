@@ -1,0 +1,298 @@
+/* Cubeit — "Deep Sea".
+   Ink Black #0D1B2A · Prussian Blue #1B263B · Dusk Blue #415A77
+   Lavender Grey #778DA9 · Alabaster Grey #E0E1DD */
+
+:root {
+    --ink:       #0D1B2A;   /* page */
+    --prussian:  #1B263B;   /* panels, raised surfaces */
+    --dusk:      #415A77;   /* borders, dividers, fills */
+    --lavender:  #778DA9;   /* accents, larger secondary text */
+    --alabaster: #E0E1DD;   /* primary text */
+
+    /* Lavender Grey reads at 4.45:1 on the panel colour — a shade under AA for
+       small text — so hint-sized copy uses this slightly lifted tint (5.15:1). */
+    --muted:     #8199B4;
+
+    --bg: var(--ink);
+    --surface: var(--prussian);
+    --line: var(--dusk);
+    --text: var(--alabaster);
+
+    /* Outside the palette, and deliberately: these carry meaning rather than
+       style — a stopped/armed timer light, and an error. */
+    --amber: #E0A458;
+    --green: #7FC8A9;
+    --rose:  #C1666B;
+
+    --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+/* Renders scrollbars and form controls dark to match. */
+:root { color-scheme: dark; }
+
+* { box-sizing: border-box; }
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+    max-width: 940px;
+    margin: 0 auto;
+    padding: 32px 16px 64px;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.55;
+}
+
+::selection { background: var(--dusk); color: var(--alabaster); }
+
+h1 { font-size: 1.75rem; font-weight: 600; margin: 0 0 4px; letter-spacing: -0.01em; }
+h2 { font-size: 1.1rem; font-weight: 600; margin: 0 0 12px; }
+
+a { color: var(--lavender); text-decoration-color: var(--dusk); }
+a:hover { color: var(--alabaster); text-decoration-color: currentColor; }
+
+header { margin-bottom: 16px; }
+.meta { color: var(--muted); font-size: 0.9rem; margin: 0 0 20px; }
+.meta strong { color: var(--text); font-weight: 600; }
+
+nav {
+    font-size: 0.9rem;
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--line);
+}
+nav a { margin-right: 18px; text-decoration: none; }
+nav a:hover { text-decoration: underline; }
+
+.panel {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 24px;
+}
+
+.error {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--rose);
+    border-radius: 8px;
+    padding: 12px 14px;
+    margin-bottom: 20px;
+}
+
+.hint { color: var(--muted); font-size: 0.88rem; }
+.section-title { font-weight: 600; margin: 16px 0 6px; }
+
+kbd {
+    font-family: var(--mono);
+    font-size: 0.82em;
+    background: var(--ink);
+    border: 1px solid var(--line);
+    border-bottom-width: 2px;
+    border-radius: 4px;
+    padding: 1px 6px;
+    color: var(--text);
+}
+
+/* --- the game ---------------------------------------------------------- */
+.game-layout {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 24px;
+    align-items: flex-start;
+}
+
+#canvas-container {
+    width: 340px;
+    height: 340px;
+    flex: 0 0 auto;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    overflow: hidden;
+    background: var(--ink);
+    touch-action: none;
+}
+
+.controls { flex: 1; min-width: 280px; }
+
+.clock {
+    font-family: var(--mono);
+    font-size: 2.75rem;
+    font-variant-numeric: tabular-nums;
+    line-height: 1.1;
+    margin: 0 0 8px;
+    color: var(--text);
+}
+
+.scramble {
+    font-family: var(--mono);
+    background: var(--ink);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-size: 0.92rem;
+    word-spacing: 0.4em;
+    color: var(--text);
+    overflow-x: auto;
+    white-space: nowrap;
+}
+
+.move-row { display: flex; gap: 6px; margin-bottom: 6px; }
+
+button {
+    font: inherit;
+    padding: 7px 14px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--ink);
+    color: var(--text);
+    cursor: pointer;
+}
+button:hover:not(:disabled) {
+    border-color: var(--lavender);
+    background: color-mix(in srgb, var(--dusk) 35%, var(--ink));
+}
+button:disabled { opacity: 0.4; cursor: default; }
+button:focus-visible, input:focus-visible {
+    outline: 2px solid var(--lavender);
+    outline-offset: 2px;
+}
+
+.move-row button {
+    min-width: 50px;
+    font-family: var(--mono);
+    padding: 7px 0;
+    text-align: center;
+}
+
+input[type="text"] {
+    font: inherit;
+    padding: 8px 10px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--ink);
+    color: var(--text);
+}
+input[type="text"]:focus { border-color: var(--lavender); outline: none; }
+
+label { font-size: 0.88rem; color: var(--muted); }
+
+/* --- speedmat ---------------------------------------------------------- */
+/* The clock is the whole page here, so give it the room a real mat gets. */
+.mat { text-align: center; padding: 40px 16px; }
+.mat .clock { font-size: clamp(3rem, 14vw, 6rem); margin: 0 0 14px; }
+
+/* The clock colour is the timer's light: amber while the hold is still
+   counting, green once armed and a release will start it. */
+#timer-panel[data-phase="holding"] .clock { color: var(--amber); }
+#timer-panel[data-phase="ready"]   .clock { color: var(--green); }
+#timer-panel[data-phase="running"] .clock { color: var(--text); }
+
+.times {
+    list-style: none;
+    padding: 0;
+    margin: 10px 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+.times li {
+    font-family: var(--mono);
+    font-size: 0.88rem;
+    background: var(--ink);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 3px 9px;
+    color: var(--text);
+}
+.times li.best { border-color: var(--green); color: var(--green); }
+
+/* --- the board --------------------------------------------------------- */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    overflow: hidden;
+}
+caption {
+    text-align: left;
+    color: var(--muted);
+    font-size: 0.88rem;
+    padding-bottom: 10px;
+}
+th, td {
+    padding: 10px 14px;
+    text-align: left;
+    border-bottom: 1px solid color-mix(in srgb, var(--dusk) 45%, transparent);
+}
+th {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+    font-weight: 600;
+    background: color-mix(in srgb, var(--dusk) 22%, transparent);
+}
+tbody tr:last-child td { border-bottom: none; }
+
+.num { text-align: right; font-family: var(--mono); font-variant-numeric: tabular-nums; }
+tr.me { background: color-mix(in srgb, var(--dusk) 30%, transparent); }
+.you {
+    color: var(--ink);
+    background: var(--lavender);
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-radius: 4px;
+    padding: 1px 5px;
+    margin-left: 6px;
+    vertical-align: middle;
+}
+
+/* --- solver ------------------------------------------------------------ */
+.faces-container { display: flex; flex-wrap: wrap; gap: 10px; margin: 10px 0; }
+.face {
+    display: grid;
+    grid-template-columns: repeat(3, 26px);
+    grid-template-rows: repeat(3, 26px);
+    gap: 2px;
+    padding: 2px;
+    border: 1px solid var(--line);
+    background: var(--ink);
+    border-radius: 4px;
+}
+/* Sticker colours are the cube's own and stay as they are; only the frame
+   around them belongs to the palette. */
+.cell { width: 26px; height: 26px; cursor: pointer; border-radius: 2px; }
+.cell:hover { outline: 2px solid var(--alabaster); outline-offset: -2px; }
+
+.color-palette { display: flex; gap: 8px; margin: 10px 0; }
+.color-btn {
+    width: 28px; height: 28px;
+    border: 1px solid var(--line);
+    border-radius: 50%;
+    cursor: pointer;
+    padding: 0;
+}
+/* Specific enough to beat the generic button:hover border; the swatch's own
+   colour is an inline style and stays put. */
+.color-btn:hover:not(:disabled) { border-color: var(--alabaster); }
+.color-btn.active {
+    border-color: var(--alabaster);
+    box-shadow: 0 0 0 2px var(--ink), 0 0 0 4px var(--alabaster);
+}
+
+#result {
+    margin-top: 16px;
+    background: var(--ink);
+    border: 1px solid var(--line);
+    padding: 12px;
+    border-radius: 8px;
+    white-space: pre-wrap;
+    font-family: var(--mono);
+    font-size: 0.88rem;
+    color: var(--text);
+}
+#solutionControls { margin-top: 14px; }

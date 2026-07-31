@@ -1,0 +1,17 @@
+__pycache__/
+*.py[cod]
+
+venv/
+.venv/
+
+# Created on first run by init_db(); never the same between machines, and
+# committing it would drag local test scores into every deploy.
+leaderboard.db
+
+# Claude Code's local tooling config. Not part of the project, and it
+# reappears on its own whenever a command is approved.
+.claude/
+
+.idea/
+.vscode/
+.DS_Store

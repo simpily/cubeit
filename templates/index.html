@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Cubeit &mdash; Daily Scramble</title>
+  <link rel="icon" href="{{ url_for('static', filename='favicon.png') }}">
+  <link rel="apple-touch-icon" href="{{ url_for('static', filename='favicon.png') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+  <header>
+    <h1>Cubeit</h1>
+    <p class="meta">
+      One scramble a day, the same for everyone. Solve it fast.
+    </p>
+  </header>
+
+  <nav>
+    <a href="{{ url_for('archive') }}">Archive</a>
+    <a href="{{ url_for('solver') }}">Solver</a>
+    <a href="{{ url_for('timer') }}">Timer</a>
+  </nav>
+
+  <p class="meta">
+    <strong>{{ day|fmt_day }}</strong> (UTC) &mdash;
+    next scramble in <strong id="countdown" data-seconds="{{ reset_in }}">&mdash;</strong>.
+  </p>
+
+  {% if error %}<p class="error"><strong>{{ error }}</strong></p>{% endif %}
+
+  {% if mine %}
+    {# This browser has spent its run. The cube is gone until 00:00 UTC. #}
+    <div class="panel">
+      <h2 style="margin-top:0">{% if just_posted %}Locked in{% else %}Today's solve{% endif %}</h2>
+      <p class="clock">{{ mine.score|fmt_time }}</p>
+      <p>
+        Posted as <strong>{{ mine.name }}</strong>{% if my_rank %} &mdash;
+        currently <strong>#{{ my_rank }}</strong> of {{ board|length }}{% endif %}{% if mine.moves %},
+        in {{ mine.moves }} moves{% endif %}.
+      </p>
+      <p class="hint">Today's scramble was:</p>
+      <p class="scramble">{{ scramble }}</p>
+      <p class="hint">That's your one run. A new scramble lands in <span data-mirror="countdown">&mdash;</span>.</p>
+    </div>
+  {% else %}
+    <form method="post" action="{{ url_for('submit') }}">
+      <div id="game" class="panel" hidden
+           data-state="{{ scrambled_state }}"
+           data-solved="{{ solved_state }}">
+        <div class="game-layout">
+          <div id="canvas-container"></div>
+
+          <div class="controls">
+            <p class="clock" id="display">0.000</p>
+            {# Two spans, not one: the hint's text is rewritten on the first
+               turn, which would wipe out a move counter nested inside it. #}
+            <p class="hint">
+              <span id="hint">Turn a face to start the clock.</span>
+              &middot; <span id="moveCount">0</span> moves
+            </p>
+
+            <div id="stage-play">
+              <div id="moveButtons"></div>
+              <p class="hint">
+                Keys: <kbd>u</kbd> <kbd>r</kbd> <kbd>f</kbd> <kbd>d</kbd> <kbd>l</kbd> <kbd>b</kbd>
+                turn a face, <kbd>shift</kbd> reverses. Drag the cube to look around.
+              </p>
+              <p><button type="button" id="restart">Start over</button></p>
+            </div>
+
+            <div id="stage-name" hidden>
+              <p><strong>Solved.</strong> Sign it to post it.</p>
+              <p>
+                <label for="name">Name</label><br>
+                <input id="name" type="text" name="name" size="24" maxlength="24" autocomplete="off">
+              </p>
+              <p><button type="submit">Post time</button></p>
+            </div>
+          </div>
+        </div>
+
+        <p class="hint" style="margin-bottom:4px">Today's scramble</p>
+        <p class="scramble">{{ scramble }}</p>
+
+        <input id="score" type="hidden" name="score" value="">
+        <input id="moves" type="hidden" name="moves" value="">
+      </div>
+
+      <noscript>
+        <p class="error"><strong>The cube needs JavaScript.</strong> Enable it to play today's scramble.</p>
+      </noscript>
+    </form>
+  {% endif %}
+
+  {% if board %}
+    <table>
+      <caption>{{ board|length }} solve{{ '' if board|length == 1 else 's' }} today &mdash; fastest first</caption>
+      <thead>
+        <tr>
+          <th class="num">#</th>
+          <th>Name</th>
+          <th class="num">Time</th>
+          <th class="num">Moves</th>
+          <th class="num">Gap</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for e in board %}
+          <tr {% if mine and e.id == mine.id %}class="me"{% endif %}>
+            <td class="num">{{ '%02d'|format(e.rank) }}</td>
+            <td>
+              {% if e.rank == 1 %}<strong>{{ e.name }}</strong>{% else %}{{ e.name }}{% endif %}
+              {% if mine and e.id == mine.id %}<span class="you">you</span>{% endif %}
+            </td>
+            <td class="num">{{ e.score|fmt_time }}</td>
+            <td class="num">{% if e.moves %}{{ e.moves }}{% else %}&mdash;{% endif %}</td>
+            <td class="num">{% if e.gap %}+{{ '%.3f'|format(e.gap) }}{% else %}&mdash;{% endif %}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p><em>Nobody has solved today's scramble yet. Be the first.</em></p>
+  {% endif %}
+
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://unpkg.com/three@0.152.0/build/three.module.js",
+        "three/addons/": "https://unpkg.com/three@0.152.0/examples/jsm/"
+      }
+    }
+  </script>
+  <script type="module" src="{{ url_for('static', filename='daily.js') }}"></script>
+
+  <script>
+    // Live countdown to the 00:00 UTC rollover.
+    (function () {
+      var el = document.getElementById("countdown");
+      var mirrors = document.querySelectorAll('[data-mirror="countdown"]');
+      var left = parseInt(el.dataset.seconds, 10);
+
+      function draw() {
+        if (left <= 0) {
+          // A new scramble is up; reload for the fresh day and a fresh run.
+          location.reload();
+          return;
+        }
+        var h = Math.floor(left / 3600);
+        var m = Math.floor((left % 3600) / 60);
+        var s = left % 60;
+        var text = h + "h " + m + "m " + s + "s";
+        el.textContent = text;
+        for (var i = 0; i < mirrors.length; i++) mirrors[i].textContent = text;
+        left -= 1;
+      }
+
+      draw();
+      setInterval(draw, 1000);
+    })();
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Cubeit &mdash; Any-to-Any Solver</title>
+  <link rel="icon" href="{{ url_for('static', filename='favicon.png') }}">
+  <link rel="apple-touch-icon" href="{{ url_for('static', filename='favicon.png') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+  <header>
+    <h1>Any-to-any solver</h1>
+    <p class="meta">Set a cube, set a target pattern, and get the sequence between them.</p>
+  </header>
+
+  <nav>
+    <a href="{{ url_for('index') }}">Today's scramble</a>
+    <a href="{{ url_for('archive') }}">Archive</a>
+    <a href="{{ url_for('timer') }}">Timer</a>
+  </nav>
+
+  {% if not solver_available %}
+    <p class="error">
+      <strong>The solver engine isn't installed.</strong>
+      Turning the cube and editing states still works, but solving needs the
+      <code>kociemba</code> package: <code>pip install kociemba</code>.
+    </p>
+  {% endif %}
+
+  <div class="panel">
+    <div class="game-layout">
+      <div id="canvas-container"></div>
+
+      <div class="controls">
+        <div class="section-title">Current state</div>
+        <div id="currentFaces" class="faces-container"></div>
+        <div class="color-palette">
+          <button class="color-btn active" data-color="U" style="background:#FFFFFF" title="White (U)"></button>
+          <button class="color-btn" data-color="R" style="background:#FF0000" title="Red (R)"></button>
+          <button class="color-btn" data-color="F" style="background:#00FF00" title="Green (F)"></button>
+          <button class="color-btn" data-color="D" style="background:#FFFF00" title="Yellow (D)"></button>
+          <button class="color-btn" data-color="L" style="background:#FFA500" title="Orange (L)"></button>
+          <button class="color-btn" data-color="B" style="background:#0000FF" title="Blue (B)"></button>
+        </div>
+
+        <div class="section-title">Turn the cube</div>
+        <div id="moveButtons"></div>
+        <p>
+          <button type="button" id="scrambleBtn">Scramble</button>
+          <button type="button" id="resetBtn">Reset to solved</button>
+        </p>
+      </div>
+    </div>
+
+    <div class="section-title">Target pattern &mdash; <span id="targetLabel">Solved</span></div>
+    <div id="targetFaces" class="faces-container"></div>
+    <p>
+      <button type="button" id="surpriseBtn">Surprise pattern</button>
+      <button type="button" id="solveBtn">Solve &amp; animate</button>
+    </p>
+
+    <div id="result">Waiting for solve&hellip;</div>
+
+    <div id="solutionControls" hidden>
+      <div class="section-title">Solution playback</div>
+      <p id="stepProgress" class="hint">Step 0 / 0</p>
+      <p>
+        <button type="button" id="prevBtn">&#9198; Previous</button>
+        <button type="button" id="nextBtn">Next &#9197;</button>
+        <button type="button" id="pauseBtn">&#9208; Pause</button>
+      </p>
+    </div>
+  </div>
+
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://unpkg.com/three@0.152.0/build/three.module.js",
+        "three/addons/": "https://unpkg.com/three@0.152.0/examples/jsm/"
+      }
+    }
+  </script>
+  <script type="module" src="{{ url_for('static', filename='solver.js') }}"></script>
+
+</body>
+</html>

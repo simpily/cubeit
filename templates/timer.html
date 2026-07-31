@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Cubeit &mdash; Speedmat</title>
+  <link rel="icon" href="{{ url_for('static', filename='favicon.png') }}">
+  <link rel="apple-touch-icon" href="{{ url_for('static', filename='favicon.png') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+  <header>
+    <h1>Speedmat</h1>
+    <p class="meta">
+      Competition-style timing for the cube in your hands.
+      Practice only &mdash; nothing here reaches the leaderboard.
+    </p>
+  </header>
+
+  <nav>
+    <a href="{{ url_for('index') }}">Today's scramble</a>
+    <a href="{{ url_for('archive') }}">Archive</a>
+    <a href="{{ url_for('solver') }}">Solver</a>
+  </nav>
+
+  <div id="timer-panel" class="panel mat" data-phase="idle">
+    <p class="clock" id="display">0.000</p>
+    <p class="hint" id="status">Hold space to arm the timer.</p>
+    <p class="hint">
+      Hold <kbd>space</kbd>, wait for <strong>ready</strong>, then release to
+      start. Press <strong>any key</strong> to stop.
+    </p>
+  </div>
+
+  <div class="panel">
+    <div class="section-title">Session</div>
+    <p class="hint" id="stats">No solves yet this session.</p>
+    <ol id="times" class="times" reversed></ol>
+    <p>
+      <button type="button" id="dropLast">Delete last</button>
+      <button type="button" id="clearTimes">Clear session</button>
+    </p>
+    <p class="hint">Times are kept in this browser only.</p>
+  </div>
+
+  <script type="module" src="{{ url_for('static', filename='timer.js') }}"></script>
+
+</body>
+</html>

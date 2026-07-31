@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Cubeit &mdash; Archive</title>
+  <link rel="icon" href="{{ url_for('static', filename='favicon.png') }}">
+  <link rel="apple-touch-icon" href="{{ url_for('static', filename='favicon.png') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+  <header>
+    <h1>Archive</h1>
+    <p class="meta">Every scramble that has already closed.</p>
+  </header>
+
+  <nav>
+    <a href="{{ url_for('index') }}">Today's scramble</a>
+    <a href="{{ url_for('solver') }}">Solver</a>
+    <a href="{{ url_for('timer') }}">Timer</a>
+  </nav>
+
+  {% if days %}
+    <table>
+      <caption>{{ days|length }} day{{ '' if days|length == 1 else 's' }} archived</caption>
+      <thead>
+        <tr>
+          <th>Day</th>
+          <th>Winner</th>
+          <th class="num">Best</th>
+          <th class="num">Solves</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for d in days %}
+          <tr>
+            <td><a href="{{ url_for('archive_day', day=d.day) }}">{{ d.day|fmt_day }}</a></td>
+            <td>{{ d.champion }}</td>
+            <td class="num">{{ d.best|fmt_time }}</td>
+            <td class="num">{{ d.players }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p><em>Nothing archived yet. Come back after the next 00:00 UTC rollover.</em></p>
+  {% endif %}
+
+</body>
+</html>

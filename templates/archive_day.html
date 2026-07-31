@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Cubeit &mdash; {{ day }}</title>
+  <link rel="icon" href="{{ url_for('static', filename='favicon.png') }}">
+  <link rel="apple-touch-icon" href="{{ url_for('static', filename='favicon.png') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+  <header>
+    <h1>{{ day|fmt_day }}</h1>
+    <p class="meta">Closed board.</p>
+  </header>
+
+  <nav>
+    <a href="{{ url_for('archive') }}">All days</a>
+    <a href="{{ url_for('index') }}">Today's scramble</a>
+    <a href="{{ url_for('timer') }}">Timer</a>
+  </nav>
+
+  <p class="meta">
+    {% if older %}<a href="{{ url_for('archive_day', day=older) }}">&larr; {{ older|fmt_day }}</a>{% else %}earliest{% endif %}
+    &nbsp;&middot;&nbsp;
+    {% if newer %}<a href="{{ url_for('archive_day', day=newer) }}">{{ newer|fmt_day }} &rarr;</a>{% else %}latest{% endif %}
+  </p>
+
+  {% if scramble %}
+    <p class="hint" style="margin-bottom:4px">That day's scramble</p>
+    <p class="scramble">{{ scramble }}</p>
+  {% else %}
+    <p class="hint">This day was played before Cubeit used a daily scramble.</p>
+  {% endif %}
+
+  <table>
+    <caption>{{ board|length }} solve{{ '' if board|length == 1 else 's' }} &mdash; fastest first</caption>
+    <thead>
+      <tr>
+        <th class="num">#</th>
+        <th>Name</th>
+        <th class="num">Time</th>
+        <th class="num">Moves</th>
+        <th class="num">Gap</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for e in board %}
+        <tr>
+          <td class="num">{{ '%02d'|format(e.rank) }}</td>
+          <td>{% if e.rank == 1 %}<strong>{{ e.name }}</strong>{% else %}{{ e.name }}{% endif %}</td>
+          <td class="num">{{ e.score|fmt_time }}</td>
+          <td class="num">{% if e.moves %}{{ e.moves }}{% else %}&mdash;{% endif %}</td>
+          <td class="num">{% if e.gap %}+{{ '%.3f'|format(e.gap) }}{% else %}&mdash;{% endif %}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+</body>
+</html>
